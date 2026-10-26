@@ -1,4 +1,20 @@
 {
   "wallpaper": true,
-  "wallpaper_rotation_minutes": 60
+  "wallpaper_rotation_minutes": 60,
+  "cinematic_home": true,
+  "cinematic_art": 0,
+  "ambient_glow": false,
+  "dock_glass": true,
+  "icon_only_buttons": true,
+  "focus_overshoot": false,
+  "advanced_effects": true,
+  "tile_menu": true,
+  "settings_key_panel": true,
+  "columns": 5,
+  "app_keys": [
+    "190:com.google.android.youtube.tv",
+    "351:com.dopaminetv",
+    "scan:578:com.spotify.tv.android"
+  ],
+  "home_idle_clock_minutes": 3
 }

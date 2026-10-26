@@ -60,6 +60,7 @@ import android.view.SoundEffectConstants;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.Window;
+import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
 import android.widget.FrameLayout;
@@ -139,6 +140,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private AppAdapter adapter;
     private RecyclerView grid;
     private FrameLayout root;
+    private NowPlayingCard nowPlayingCard;
     private WallpaperPlayer wallpaperPlayer;
     private GlassView glass;
     private View ambient;
@@ -713,10 +715,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             return true;
         });
         launcherSettingsButton = cfg.launcherSettingsButton;
-        if (launcherSettingsButton) {
-            ((TextView) btnSettings).setText(R.string.launcher_settings);
-            ((TextView) btnSettings).setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_home_settings_pill, 0, 0, 0);
-        }
         btnSettings.setOnClickListener(v -> {
             if (launcherSettingsButton) startActivityForResult(
                     new Intent(this, LauncherSettingsActivity.class), LAUNCHER_SETTINGS_REQUEST);
@@ -940,6 +938,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     @Override
     protected void onResume() {
         super.onResume();
+        if (nowPlayingCard == null && root != null) nowPlayingCard = new NowPlayingCard(this, root);
+        if (nowPlayingCard != null) nowPlayingCard.refresh();
         // A festival that started or ended while Home was in the background: rebuild with or without it.
         if (festive != festival.active(LocalDate.now())) {
             recreate();
@@ -2778,13 +2778,151 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         return 0xFF000000 | (r << 16) | (g << 8) | b;
     }
 
-    /**
-     * The network pill opens the VPN app when one is configured and installed, otherwise Wi-Fi settings. With
-     * vpn_pill the VPN app has its own pill, so this one always opens Wi-Fi settings.
-     */
+    @SuppressWarnings("deprecation")
+    private void connectWifi(String ssid, String password, boolean openNetwork) {
+        try {
+            WifiManager manager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+            if (manager == null) {
+                open(systemIntent(Settings.ACTION_WIFI_SETTINGS));
+                return;
+            }
+            if (!manager.isWifiEnabled()) manager.setWifiEnabled(true);
+            if (password == null) {
+                List<android.net.wifi.WifiConfiguration> configured = manager.getConfiguredNetworks();
+                if (configured != null) {
+                    for (android.net.wifi.WifiConfiguration network : configured) {
+                        if (network.SSID != null && network.SSID.equals("\"" + ssid + "\"")) {
+                            manager.disconnect();
+                            manager.enableNetwork(network.networkId, true);
+                            manager.reconnect();
+                            Toast.makeText(this, "Connecting: " + ssid, Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                    }
+                }
+                if (!openNetwork) {
+                    showWifiPassword(ssid);
+                    return;
+                }
+            }
+            android.net.wifi.WifiConfiguration network = new android.net.wifi.WifiConfiguration();
+            network.SSID = "\"" + ssid + "\"";
+            if (openNetwork) network.allowedKeyManagement.set(0);
+            else network.preSharedKey = "\"" + password + "\"";
+            int networkId = manager.addNetwork(network);
+            if (networkId != -1) {
+                manager.disconnect();
+                manager.enableNetwork(networkId, true);
+                manager.reconnect();
+                return;
+            }
+            open(systemIntent(Settings.ACTION_WIFI_SETTINGS));
+        } catch (SecurityException e) {
+            Toast.makeText(this, R.string.not_available, Toast.LENGTH_SHORT).show();
+            open(systemIntent(Settings.ACTION_WIFI_SETTINGS));
+        }
+    }
+
+    private void showWifiPassword(String ssid) {
+        View panel = getLayoutInflater().inflate(R.layout.popup_inputs, root, false);
+        LinearLayout rows = panel.findViewById(R.id.rows);
+        PopupWindow popup = glassPopup(panel, (int) (270 * density));
+        android.widget.EditText input = new android.widget.EditText(this);
+        input.setHint("Password for " + ssid);
+        input.setHintTextColor(0x88FFFFFF);
+        input.setTextColor(0xFFFFFFFF);
+        input.setSingleLine(true);
+        input.setBackgroundColor(0x22FFFFFF);
+        int padding = (int) (12 * density);
+        input.setPadding(padding, padding, padding, padding);
+        rows.addView(input);
+        addInputRow(rows, popup, R.drawable.ic_wifi, "Connect Now", -1, () -> {
+            String password = input.getText().toString().trim();
+            if (!password.isEmpty()) connectWifi(ssid, password, false);
+        });
+        panel.measure(0, 0);
+        popup.setWidth((int) (270 * density));
+        popup.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE
+                | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        dropIn(popup, panel, btnWifi, Gravity.END);
+        input.requestFocus();
+    }
+
+    @SuppressWarnings("deprecation")
     private void openNetworkPill() {
-        Intent i = vpnPill ? null : vpnAppIntent();
-        open(i != null ? i : systemIntent(Settings.ACTION_WIFI_SETTINGS));
+        View panel = getLayoutInflater().inflate(R.layout.popup_inputs, root, false);
+        LinearLayout rows = panel.findViewById(R.id.rows);
+        PopupWindow popup = glassPopup(panel, (int) (270 * density));
+        CharSequence currentName = wifiIconOnly ? btnWifi.getContentDescription() : btnWifi.getText();
+        String current = TextUtils.isEmpty(currentName)
+                ? getString(R.string.quick_network) : currentName.toString();
+        addInputRow(rows, popup, R.drawable.ic_wifi, current,
+                TvInputManager.INPUT_STATE_CONNECTED,
+                () -> root.postDelayed(this::openNetworkPill, 250));
+
+        try {
+            WifiManager manager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+            if (manager != null) {
+                manager.startScan();
+                List<android.net.wifi.ScanResult> results = manager.getScanResults();
+                if (results != null) {
+                    Collections.sort(results, (left, right) -> Integer.compare(right.level, left.level));
+                    Set<String> seen = new HashSet<>();
+                    seen.add(current);
+                    LinearLayout networkRows = new LinearLayout(this);
+                    networkRows.setOrientation(LinearLayout.VERTICAL);
+                    int count = 0;
+                    int rowHeight = 0;
+                    for (android.net.wifi.ScanResult result : results) {
+                        if (result.SSID == null || result.SSID.isEmpty() || seen.contains(result.SSID)) continue;
+                        seen.add(result.SSID);
+                        String ssid = result.SSID;
+                        boolean openNetwork = result.capabilities == null
+                                || !result.capabilities.contains("WPA");
+                        int signal = WifiManager.calculateSignalLevel(result.level, 4);
+                        String strength = signal >= 3 ? " [++++]"
+                                : signal == 2 ? " [+++-]" : " [++--]";
+                        addInputRow(networkRows, popup, R.drawable.ic_wifi, ssid + strength, -1,
+                                () -> connectWifi(ssid, null, openNetwork));
+                        if (rowHeight == 0) {
+                            View firstRow = networkRows.getChildAt(0);
+                            firstRow.measure(0, 0);
+                            rowHeight = firstRow.getMeasuredHeight();
+                        }
+                        if (++count >= 15) break;
+                    }
+                    if (count > 0) {
+                        addSeparator(rows);
+                        android.widget.ScrollView scroll = new android.widget.ScrollView(this);
+                        scroll.setVerticalScrollBarEnabled(false);
+                        scroll.addView(networkRows);
+                        int height = rowHeight > 0 ? rowHeight * Math.min(count, 3)
+                                : (int) (132 * density);
+                        rows.addView(scroll, new LinearLayout.LayoutParams(-1, height));
+                    }
+                }
+            }
+        } catch (SecurityException e) {
+            android.util.Log.w("MainActivity", "Unable to scan nearby Wi-Fi networks.", e);
+            Toast.makeText(this, R.string.not_available, Toast.LENGTH_SHORT).show();
+        }
+
+        addSeparator(rows);
+        if (!vpnPill) {
+            Intent vpnIntent = vpnAppIntent();
+            if (vpnIntent != null) {
+                addInputRow(rows, popup, R.drawable.ic_lock, getString(R.string.vpn),
+                        -1, () -> open(vpnIntent));
+            }
+        }
+        addInputRow(rows, popup, R.drawable.ic_settings, "Network Settings", -1,
+                () -> open(systemIntent(Settings.ACTION_WIFI_SETTINGS)));
+        panel.measure(0, 0);
+        popup.setWidth(Math.max((int) (270 * density),
+                Math.min(panel.getMeasuredWidth(), (int) (360 * density))));
+        int alignment = getResources().getBoolean(R.bool.rtl_menu_bar) ? Gravity.START : Gravity.END;
+        dropIn(popup, panel, btnWifi, alignment);
+        rows.getChildAt(0).requestFocus();
     }
 
     /** vpn_app's launch intent, or null when none is set or it is not installed. */
