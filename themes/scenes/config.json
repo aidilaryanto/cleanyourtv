@@ -11,6 +11,7 @@
   "tile_menu": true,
   "settings_key_panel": true,
   "columns": 5,
+  "greeting_name": "Mileva",
   "app_keys": [
     "190:com.google.android.youtube.tv",
     "351:com.dopaminetv",

@@ -1,26 +1,24 @@
 #!/usr/bin/env bash
 # Build the launcher APK and install it on the TV as the default home screen.
+# The simulator may set SIMULATOR_ADB_SERIAL plus SIMULATOR_AVD_NAME; only that AVD is accepted.
 set -euo pipefail
 cd "$(dirname "$0")"
-: "${TV_HOST:?set TV_HOST to the TV IP address, e.g. TV_HOST=192.168.1.50 $0}"
+ADB_MODE=0
+if [ -n "${SIMULATOR_ADB_SERIAL:-}" ]; then
+  ADB_MODE=1
+  if [[ ! "$SIMULATOR_ADB_SERIAL" =~ ^emulator-[0-9]+$ ]] || [ "${SIMULATOR_AVD_NAME:-}" != CleanYourTV_TV_API_34 ]; then
+    echo "ERROR: simulator ADB mode is restricted to the CleanYourTV_TV_API_34 emulator." >&2
+    exit 1
+  fi
+else
+  : "${TV_HOST:?set TV_HOST to the TV IP address, e.g. TV_HOST=192.168.1.50 $0}"
+fi
 TOOLS="$(cd ../tools && pwd)"   # absolute, so the venv's Python doesn't warn about "../" in its prefix
 PY=$TOOLS/venv/bin/python
 [ -x "$PY" ] || PY=$TOOLS/venv/Scripts/python.exe
 # No venv yet: say how to make one (as tools/disable.sh does) instead of failing on the Windows path (#1142).
-[ -x "$PY" ] || { echo "run: python3 -m venv tools/venv && tools/venv/bin/pip install -r tools/requirements.txt" >&2; exit 1; }
+[ "$ADB_MODE" = 1 ] || [ -x "$PY" ] || { echo "run: python3 -m venv tools/venv && tools/venv/bin/pip install -r tools/requirements.txt" >&2; exit 1; }
 export MSYS_NO_PATHCONV=1
-# Below minSdk, `pm install` refuses the APK with INSTALL_FAILED_OLDER_SDK - and only after gradle has
-# spent a minute building and b64push has pushed the APK to the TV (#576). Ask the TV first. The
-# number comes from the build file, so it follows the launcher instead of a hard-coded copy here.
-MIN_SDK=$(sed -n 's/^[[:space:]]*minSdk[[:space:]][[:space:]]*\([0-9]\{1,3\}\)[[:space:]]*$/\1/p' app/build.gradle 2>/dev/null | head -n 1 || true)
-TV_SDK=$("$PY" -I "$TOOLS/tv.py" 'getprop ro.build.version.sdk' 2>/dev/null | tr -dc '0-9' || true)
-if [ -n "$MIN_SDK" ] && [ -n "$TV_SDK" ] && [ "$TV_SDK" -lt "$MIN_SDK" ]; then
-  echo "ERROR: this TV runs SDK $TV_SDK and the launcher is built with minSdk $MIN_SDK (app/build.gradle)," >&2
-  echo "so pm install would answer INSTALL_FAILED_OLDER_SDK. Nothing was built, pushed or disabled." >&2
-  echo "The debloat half of the repo still applies to that set, from its own home screen; the launcher" >&2
-  echo "half would need your own build with a lower minSdk (docs/TROUBLESHOOTING.md)." >&2
-  exit 1
-fi
 # macOS: java_home or Homebrew; Linux: the java on PATH.
 # `/usr/libexec/java_home -v 17` means "17 or newer", so on a Mac whose only JDK is newer it prints
 # that one and exits 0, and the Homebrew fallback below never runs. Gradle 8.9 then stops with
@@ -45,12 +43,48 @@ export JAVA_HOME
 export ANDROID_HOME="${ANDROID_HOME:-$(for d in ~/Library/Android/sdk ~/Android/Sdk; do [ -d "$d" ] && echo "$d" && break; done)}"
 export ANDROID_HOME="${ANDROID_HOME:-/opt/homebrew/share/android-commandlinetools}"
 export PATH="$JAVA_HOME/bin:$PATH"
+if [ "$ADB_MODE" = 1 ]; then
+  ADB="${ANDROID_HOME}/platform-tools/adb"
+  [ -x "$ADB" ] || ADB="$(command -v adb || true)"
+  if [ -z "$ADB" ] || ! "$ADB" -s "$SIMULATOR_ADB_SERIAL" get-state 2>/dev/null | grep -qx device; then
+    echo "ERROR: Android emulator $SIMULATOR_ADB_SERIAL is not available through adb." >&2
+    exit 1
+  fi
+  AVD=$("$ADB" -s "$SIMULATOR_ADB_SERIAL" emu avd name 2>/dev/null | sed -n '1p' | tr -d '\r')
+  if [ "$AVD" != "$SIMULATOR_AVD_NAME" ]; then
+    echo "ERROR: refusing to change Home on '$SIMULATOR_ADB_SERIAL' (expected $SIMULATOR_AVD_NAME, found '${AVD:-unknown}')." >&2
+    exit 1
+  fi
+fi
+# Below minSdk, `pm install` refuses the APK with INSTALL_FAILED_OLDER_SDK - and only after gradle has
+# spent a minute building and b64push has pushed the APK to the TV (#576). Ask the target first. The
+# number comes from the build file, so it follows the launcher instead of a hard-coded copy here.
+MIN_SDK=$(sed -n 's/^[[:space:]]*minSdk[[:space:]][[:space:]]*\([0-9]\{1,3\}\)[[:space:]]*$/\1/p' app/build.gradle 2>/dev/null | head -n 1 || true)
+if [ "$ADB_MODE" = 1 ]; then
+  TV_SDK=$("$ADB" -s "$SIMULATOR_ADB_SERIAL" shell getprop ro.build.version.sdk 2>/dev/null | tr -dc '0-9' || true)
+else
+  TV_SDK=$("$PY" -I "$TOOLS/tv.py" 'getprop ro.build.version.sdk' 2>/dev/null | tr -dc '0-9' || true)
+fi
+if [ -n "$MIN_SDK" ] && [ -n "$TV_SDK" ] && [ "$TV_SDK" -lt "$MIN_SDK" ]; then
+  echo "ERROR: this target runs SDK $TV_SDK and the launcher is built with minSdk $MIN_SDK (app/build.gradle)," >&2
+  echo "so install would answer INSTALL_FAILED_OLDER_SDK. Nothing was built, pushed or disabled." >&2
+  echo "The debloat half of the repo still applies to that set, from its own home screen; the launcher" >&2
+  echo "half would need your own build with a lower minSdk (docs/TROUBLESHOOTING.md)." >&2
+  exit 1
+fi
 # local.properties is a Java properties file, where a backslash is an escape. Git Bash on Windows hands us
 # C:\Users\...\Sdk, which Gradle then reads as a broken path ("The filename, directory name, or volume label
 # syntax is incorrect"), and since the file is only written when missing, build-and-install.ps1 kept failing
 # on it too. Forward slashes work everywhere.
 [ -f local.properties ] || echo "sdk.dir=$(printf '%s' "$ANDROID_HOME" | tr '\\' '/')" > local.properties
 ./gradlew assembleRelease -q --console=plain
+device_shell() {
+  if [ "$ADB_MODE" = 1 ]; then
+    "$ADB" -s "$SIMULATOR_ADB_SERIAL" shell "$1"
+  else
+    "$PY" -I ../tools/tv.py "$1"
+  fi
+}
 # Which app owns Home differs by build (com.google.android.tvlauncher on Android TV,
 # com.google.android.apps.tv.launcherx on newer Google TV), so ask the TV instead of guessing.
 # Only a launcher we recognise is accepted: the answer can also be Android's chooser ("android"),
@@ -58,7 +92,7 @@ export PATH="$JAVA_HOME/bin:$PATH"
 # Pass STOCK_LAUNCHER=<package> to name it yourself, or STOCK_LAUNCHER=none to disable nothing.
 KNOWN_STOCK_LAUNCHERS="com.google.android.tvlauncher com.google.android.apps.tv.launcherx com.google.android.leanbacklauncher com.mitv.tvhome"
 if [ -z "${STOCK_LAUNCHER:-}" ]; then
-  HOME_PKG=$("$PY" -I ../tools/tv.py 'cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME' \
+  HOME_PKG=$(device_shell 'cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME' \
     | tail -n 1 | tr -d '\r' | cut -d/ -f1) || {
     echo "ERROR: could not ask the TV which launcher owns Home. Check TV_HOST and the debugging prompt on the TV," >&2
     echo "or pass STOCK_LAUNCHER=<package> yourself." >&2; exit 1; }
@@ -71,7 +105,7 @@ if [ -z "${STOCK_LAUNCHER:-}" ]; then
         # Android's chooser: two or more launchers tie and no default is set, which is where a TV lands
         # after tools/restore.sh followed by a re-applied list. Take the one known stock launcher among
         # the HOME claimants, if there is exactly one.
-        CLAIMANTS=$("$PY" -I ../tools/tv.py 'cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.HOME' \
+        CLAIMANTS=$(device_shell 'cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.HOME' \
           | tr -d '\r' | grep -o '[A-Za-z0-9_.]*/' | tr -d / | sort -u)
         FOUND=""; N=0
         for k in $KNOWN_STOCK_LAUNCHERS; do
@@ -97,10 +131,14 @@ HOME_QUERY='cmd package resolve-activity --brief -a android.intent.action.MAIN -
 if [ "$STOCK_LAUNCHER" = none ]; then DISABLE_STOCK="echo stock launcher left alone"
 else DISABLE_STOCK="pm disable-user --user 0 $STOCK_LAUNCHER"; fi
 APK=app/build/outputs/apk/release/app-release.apk
-"$PY" -I ../tools/b64push.py "$APK" /data/local/tmp/tvhome.apk
 # Install on its own: in the batch below a failed install (e.g. "not enough space" on a full /data)
 # would not stop the stock launcher from being disabled.
-OUT=$("$PY" -I ../tools/tv.py 'pm install -r /data/local/tmp/tvhome.apk; rm -f /data/local/tmp/tvhome.apk')
+if [ "$ADB_MODE" = 1 ]; then
+  OUT=$("$ADB" -s "$SIMULATOR_ADB_SERIAL" install -r "$APK" 2>&1) || true
+else
+  "$PY" -I ../tools/b64push.py "$APK" /data/local/tmp/tvhome.apk
+  OUT=$("$PY" -I ../tools/tv.py 'pm install -r /data/local/tmp/tvhome.apk; rm -f /data/local/tmp/tvhome.apk')
+fi
 echo "$OUT"
 case "$OUT" in
   *Success*) ;;
@@ -117,12 +155,12 @@ esac
 # HDMI picture on screen (#1101). `am start` below would only reuse it, so stop it first; the start
 # then creates a fresh one. A force stop also takes the key helpers off the enabled list, so a helper
 # that was on is written back (cleared first: Android binds again only when the list changes).
-"$PY" -I ../tools/tv.py 's=$(settings get secure enabled_accessibility_services); a=$(settings get secure accessibility_enabled); am force-stop com.gathin.tvhome; case "$s" in *com.gathin.tvhome*) settings put secure enabled_accessibility_services ""; settings put secure enabled_accessibility_services "$s"; settings put secure accessibility_enabled "$a" ;; esac' >/dev/null
+device_shell 's=$(settings get secure enabled_accessibility_services); a=$(settings get secure accessibility_enabled); am force-stop com.gathin.tvhome; case "$s" in *com.gathin.tvhome*) settings put secure enabled_accessibility_services ""; settings put secure enabled_accessibility_services "$s"; settings put secure accessibility_enabled "$a" ;; esac' >/dev/null
 # Start the launcher on its own, before the stock Home is touched. In the batch below a start that
 # fails only prints an "Error:" line, and the stock launcher would be disabled anyway, leaving the TV
 # with no usable Home (#239). "Status: ok" from `am start -W` means the activity really came up;
 # the HOME resolution further down only names a component, it does not prove the activity starts.
-START_OUT=$("$PY" -I ../tools/tv.py 'am start -W -a android.intent.action.MAIN -c android.intent.category.HOME -n com.gathin.tvhome/.MainActivity')
+START_OUT=$(device_shell 'am start -W -a android.intent.action.MAIN -c android.intent.category.HOME -n com.gathin.tvhome/.MainActivity')
 echo "$START_OUT"
 # Both halves matter: some builds answer "Status: ok" for a task that was merely brought to the
 # front, and an activity that cannot start still prints "Error: Activity not started".
@@ -130,17 +168,49 @@ if ! printf '%s' "$START_OUT" | grep -qF 'Status: ok' || printf '%s' "$START_OUT
   echo "ERROR: the new launcher did not start (see above); $STOCK_LAUNCHER was left enabled." >&2
   exit 1
 fi
-printf '%s\n' \
-  "pm grant com.gathin.tvhome android.permission.ACCESS_FINE_LOCATION 2>/dev/null; echo location-granted" \
-  "cmd package compile -m speed -f com.gathin.tvhome" \
-  "$DISABLE_STOCK" \
-  "cmd package set-home-activity --user 0 com.gathin.tvhome/.MainActivity" \
-  | "$PY" -I ../tools/tv.py --batch
+if [ "$ADB_MODE" = 1 ]; then
+  device_shell "pm grant com.gathin.tvhome android.permission.ACCESS_FINE_LOCATION 2>/dev/null; echo location-granted" >/dev/null
+  device_shell "cmd package compile -m speed -f com.gathin.tvhome" >/dev/null
+  if [ "$STOCK_LAUNCHER" != none ]; then
+    DISABLE_OUT=$(device_shell "$DISABLE_STOCK" 2>&1) || {
+      printf '%s\n' "$DISABLE_OUT" >&2
+      device_shell "pm enable --user 0 $STOCK_LAUNCHER" >/dev/null 2>&1 || true
+      echo "ERROR: could not disable stock Home $STOCK_LAUNCHER." >&2
+      exit 1
+    }
+    if printf '%s\n' "$DISABLE_OUT" | grep -qiE '(^Error|Exception|Failure)'; then
+      printf '%s\n' "$DISABLE_OUT" >&2
+      device_shell "pm enable --user 0 $STOCK_LAUNCHER" >/dev/null 2>&1 || true
+      echo "ERROR: the emulator refused to disable stock Home $STOCK_LAUNCHER." >&2
+      exit 1
+    fi
+    DISABLED=$(device_shell "pm list packages -d" | tr -d '\r') || {
+      device_shell "pm enable --user 0 $STOCK_LAUNCHER" >/dev/null 2>&1 || true
+      echo "ERROR: could not verify stock Home $STOCK_LAUNCHER was disabled." >&2
+      exit 1
+    }
+    if ! printf '%s\n' "$DISABLED" | grep -Fxq "package:$STOCK_LAUNCHER"; then
+      device_shell "pm enable --user 0 $STOCK_LAUNCHER" >/dev/null 2>&1 || true
+      echo "ERROR: stock Home $STOCK_LAUNCHER is not confirmed disabled; leaving its Home setting unchanged." >&2
+      exit 1
+    fi
+    printf '%s\n' "$DISABLE_OUT"
+  fi
+  SET_HOME_OUT=$(device_shell "cmd package set-home-activity --user 0 com.gathin.tvhome/.MainActivity" 2>&1) || true
+  [ -z "$SET_HOME_OUT" ] || printf '%s\n' "$SET_HOME_OUT"
+else
+  printf '%s\n' \
+    "pm grant com.gathin.tvhome android.permission.ACCESS_FINE_LOCATION 2>/dev/null; echo location-granted" \
+    "cmd package compile -m speed -f com.gathin.tvhome" \
+    "$DISABLE_STOCK" \
+    "cmd package set-home-activity --user 0 com.gathin.tvhome/.MainActivity" \
+    | "$PY" -I ../tools/tv.py --batch
+fi
 
 # Home's owner, or an empty string when the TV cannot be reached (pipefail would otherwise make a
 # lost connection abort the script with no explanation).
 query_home() {
-  "$PY" -I ../tools/tv.py "$HOME_QUERY" 2>/dev/null | tail -n 1 | tr -d '\r' || true
+  device_shell "$HOME_QUERY" 2>/dev/null | tail -n 1 | tr -d '\r' || true
 }
 
 # Put the stock launcher back and check that it took. A TV whose new Home does not start can only be
@@ -151,23 +221,28 @@ rollback_home() {
     echo "ERROR: Home is not the new launcher, and no stock launcher was disabled; nothing to roll back." >&2
     return 1
   fi
-  "$PY" -I ../tools/tv.py "pm enable --user 0 $STOCK_LAUNCHER" >/dev/null 2>&1 || true
+  device_shell "pm enable --user 0 $STOCK_LAUNCHER" >/dev/null 2>&1 || true
   # set-home-activity needs pkg/activity on Android 9, so resolve the component on the TV first.
-  "$PY" -I ../tools/tv.py "cmd package set-home-activity --user 0 \$(cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME $STOCK_LAUNCHER | tail -n 1)" >/dev/null 2>&1 || true
+  device_shell "cmd package set-home-activity --user 0 \$(cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME $STOCK_LAUNCHER | tail -n 1)" >/dev/null 2>&1 || true
   BACK=$(query_home)
   case "$BACK" in
     "$STOCK_LAUNCHER"/*) echo "$STOCK_LAUNCHER owns Home again." >&2; return 0 ;;
   esac
-  REC="${HOME:-$PWD}/cleanyourtv-handover-$(printf '%s' "$TV_HOST" | tr -c 'A-Za-z0-9._-' '_').txt"
-  {
-    echo "# cleanyourtv: the launcher handover on $TV_HOST did not finish. From the repo root:"
-    echo "TV_HOST=$TV_HOST tools/tv.py 'pm enable --user 0 $STOCK_LAUNCHER'"
-    echo "TV_HOST=$TV_HOST tools/tv.py 'cmd package set-home-activity --user 0 \$(cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME $STOCK_LAUNCHER | tail -n 1)'"
-    echo "# then check: TV_HOST=$TV_HOST tools/tv.py '$HOME_QUERY'"
-  } > "$REC" 2>/dev/null || REC=""
-  echo "ERROR: recovery is incomplete; Home still resolves to '${BACK:-nothing}'." >&2
-  if [ -n "$REC" ]; then echo "The commands that finish it are in $REC; the TV still needs ADB for them." >&2
-  else echo "Re-run once the TV answers: pm enable --user 0 $STOCK_LAUNCHER, then set its Home activity." >&2; fi
+  if [ "$ADB_MODE" = 1 ]; then
+    echo "ERROR: recovery is incomplete; Home still resolves to '${BACK:-nothing}'." >&2
+    echo "Run: $ADB -s $SIMULATOR_ADB_SERIAL shell 'pm enable --user 0 $STOCK_LAUNCHER', then set its Home activity." >&2
+  else
+    REC="${HOME:-$PWD}/cleanyourtv-handover-$(printf '%s' "$TV_HOST" | tr -c 'A-Za-z0-9._-' '_').txt"
+    {
+      echo "# cleanyourtv: the launcher handover on $TV_HOST did not finish. From the repo root:"
+      echo "TV_HOST=$TV_HOST tools/tv.py 'pm enable --user 0 $STOCK_LAUNCHER'"
+      echo "TV_HOST=$TV_HOST tools/tv.py 'cmd package set-home-activity --user 0 \$(cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME $STOCK_LAUNCHER | tail -n 1)'"
+      echo "# then check: TV_HOST=$TV_HOST tools/tv.py '$HOME_QUERY'"
+    } > "$REC" 2>/dev/null || REC=""
+    echo "ERROR: recovery is incomplete; Home still resolves to '${BACK:-nothing}'." >&2
+    if [ -n "$REC" ]; then echo "The commands that finish it are in $REC; the TV still needs ADB for them." >&2
+    else echo "Re-run once the TV answers: pm enable --user 0 $STOCK_LAUNCHER, then set its Home activity." >&2; fi
+  fi
   return 1
 }
 
@@ -211,11 +286,11 @@ esac
 # switch accessibility off and write it back (as tools/theme.sh does).
 enable_service() {   # appends to enabled_accessibility_services without dropping other services
   svc=com.gathin.tvhome/.$1
-  "$PY" -I ../tools/tv.py "cmd appops set com.gathin.tvhome AUTO_START allow 2>/dev/null; cmd appops set com.gathin.tvhome APP_AUTO_START allow 2>/dev/null; appops write-settings 2>/dev/null; s=\$(settings get secure enabled_accessibility_services); case \"\$s\" in *$1*) settings put secure enabled_accessibility_services ''; settings put secure accessibility_enabled 0; sleep 1; settings put secure enabled_accessibility_services \"\$s\" ;; null|'') settings put secure enabled_accessibility_services $svc ;; *) settings put secure enabled_accessibility_services \"\$s:$svc\" ;; esac; settings put secure accessibility_enabled 1; echo $1 enabled"
+  device_shell "cmd appops set com.gathin.tvhome AUTO_START allow 2>/dev/null; cmd appops set com.gathin.tvhome APP_AUTO_START allow 2>/dev/null; appops write-settings 2>/dev/null; s=\$(settings get secure enabled_accessibility_services); case \"\$s\" in *$1*) settings put secure enabled_accessibility_services ''; settings put secure accessibility_enabled 0; sleep 1; settings put secure enabled_accessibility_services \"\$s\" ;; null|'') settings put secure enabled_accessibility_services $svc ;; *) settings put secure enabled_accessibility_services \"\$s:\$svc\" ;; esac; settings put secure accessibility_enabled 1; echo $1 enabled"
 }
 if [ "${INPUT_KEY_SERVICE:-0}" = 1 ]; then enable_service InputKeyService; fi
 if [ "${HOME_KEY_SERVICE:-0}" = 1 ]; then enable_service HomeKeyService; fi
 if [ "${RESTORE_KEY_SERVICES:-0}" = 1 ]; then
-  "$PY" -I ../tools/tv.py "pm grant com.gathin.tvhome android.permission.WRITE_SECURE_SETTINGS && echo restore-granted"
+  device_shell "pm grant com.gathin.tvhome android.permission.WRITE_SECURE_SETTINGS && echo restore-granted"
 fi
 echo "Installed. Press Home on the remote to see it."

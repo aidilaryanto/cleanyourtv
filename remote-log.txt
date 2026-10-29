@@ -1,0 +1,187 @@
+--------- beginning of main
+10-26 21:30:41.670 E/BpfService(  724): [MiuiBpfService][HandleRawBpfEvent] Before threadNum++: pid: 5468, ppid: 1, uid: 0, threadNum: 13, oldThreadNum: 12
+10-26 21:30:41.670 E/BpfService(  724): [MiuiBpfService][HandleRawBpfEvent] Before threadNum++: pid: 5468, ppid: 1, uid: 0, threadNum: 14, oldThreadNum: 12
+10-26 21:30:41.670 E/BpfService(  724): [MiuiBpfService][HandleRawBpfEvent] ProcessExitEvent comm: logcat, pid: 16672
+10-26 21:30:41.675 I/adbd    ( 5468): host-32: read failed: Success
+10-26 21:30:41.675 I/adbd    ( 5468): host-32: connection terminated: read failed
+10-26 21:30:41.675 I/adbd    ( 5468): host-32: offline
+10-26 21:30:41.675 I/adbd    ( 5468): destroying transport host-32
+10-26 21:30:41.675 I/adbd    ( 5468): BlockingConnectionAdapter(host-32): stopping
+10-26 21:30:41.676 I/adbd    ( 5468): BlockingConnectionAdapter(host-32): stopped
+10-26 21:30:41.676 I/adbd    ( 5468): BlockingConnectionAdapter(host-32): destructing
+10-26 21:30:41.676 I/adbd    ( 5468): BlockingConnectionAdapter(host-32): already stopped
+10-26 21:30:41.692 D/audio_hw_primary(  551): adev_set_parameters: foreground_app_change=com.gathin.tvhome
+10-26 21:30:41.692 D/audio_hw_primary(  551): _utils_set_sound_mode_effect(3251): SetParameter(foreground_app_change=com.gathin.tvhome)!!
+--------- beginning of kernel
+10-26 21:30:41.695 I/init    (    1): processing action (sys.mtk.running.application=*) from (/vendor/etc/init/hw/init.common.rc:285)
+10-26 21:30:41.781 I/MTK_MW  ( 1710): {DT} send msg to DT notification thread.
+10-26 21:30:41.781 D/MTK_MW  ( 1710): {DT} x_dt_get_brdcst_utc t_utc: 2.
+10-26 21:30:41.781 I/MTK_MW  ( 1710): {DT} DT_CHECK_RTC_VALUE_NOTIFACATION t_dt_cond == DT_NO_SYNC_SRC 
+10-26 21:30:41.827 I/[HAL_AUDIO_DumpDspInfo][14472][02205565]ADEC0 ESID(  450): 00, FF|ES=0000(0000),PCM=0000|Type=<00,0>|play=0:<1194>,State=0,0(0)|frmCnt:0000,0000(0000),00,00,00,00,00|tag:000,000|AvDly=140(ext offset:0),STC=0,PTS=0,cPTS=0,|Td=0
+10-26 21:30:41.827 I/        (  450): mute(0,0),acmode(5),ch_map(0x0)smp_rate(48000),bit_rate(0)
+10-26 21:30:41.827 I/        (  450): SND vol mch:0x800000,ch5:0x800000,ch6:0x800000,ch7:0x800000,ch8:0x800000
+10-26 21:30:42.588 W/adbd    ( 5468): timed out while waiting for FUNCTIONFS_BIND, trying again
+10-26 21:30:42.589 I/adbd    ( 5468): UsbFfs: connection terminated: monitor thread finished
+10-26 21:30:42.589 I/adbd    ( 5468): UsbFfs: already offline
+10-26 21:30:42.589 I/adbd    ( 5468): destroying transport UsbFfs
+10-26 21:30:42.589 I/adbd    ( 5468): UsbFfsConnection being destroyed
+10-26 21:30:42.650 I/adbd    ( 5468): opening control endpoint /dev/usb-ffs/adb/ep0
+10-26 21:30:42.651 I/adbd    ( 5468): UsbFfsConnection constructed
+10-26 21:30:42.653 I/        ( 5474): read descriptors
+10-26 21:30:42.653 I/        ( 5474): read strings
+10-26 21:30:42.651 I/adbd    ( 5468): UsbFfs-monitor thread spawned
+10-26 21:30:42.701 D/audio_hw_primary(  551): adev_set_parameters: foreground_app_change=com.gathin.tvhome
+10-26 21:30:42.701 D/audio_hw_primary(  551): _utils_set_sound_mode_effect(3251): SetParameter(foreground_app_change=com.gathin.tvhome)!!
+10-26 21:30:42.704 I/init    (    1): processing action (sys.mtk.running.application=*) from (/vendor/etc/init/hw/init.common.rc:285)
+--------- beginning of system
+10-26 21:30:42.769 V/HotPlugDetectionAction(  724): Poll all devices.
+10-26 21:30:42.917 I/[HAL_AUDIO_DumpDspInfo][14472][02206655]ADEC0 ESID(  450): 00, FF|ES=0000(0000),PCM=0000|Type=<00,0>|play=0:<1194>,State=0,0(0)|frmCnt:0000,0000(0000),00,00,00,00,00|tag:000,000|AvDly=140(ext offset:0),STC=0,PTS=0,cPTS=0,|Td=0
+10-26 21:30:42.917 I/        (  450): mute(0,0),acmode(5),ch_map(0x0)smp_rate(48000),bit_rate(0)
+10-26 21:30:42.917 I/        (  450): SND vol mch:0x800000,ch5:0x800000,ch6:0x800000,ch7:0x800000,ch8:0x800000
+10-26 21:30:43.388 D/HDMI    (  724): [P]:AllocatedAddress=[]
+10-26 21:30:43.388 V/HotPlugDetectionAction(  724): Finish poll all devices.
+10-26 21:30:43.618 D/BroadcastClockService( 1710): getUtcTime
+10-26 21:30:43.652 W/adbd    ( 5468): timed out while waiting for FUNCTIONFS_BIND, trying again
+10-26 21:30:43.652 I/adbd    ( 5468): UsbFfs: connection terminated: monitor thread finished
+10-26 21:30:43.652 I/adbd    ( 5468): UsbFfs: already offline
+10-26 21:30:43.653 I/adbd    ( 5468): destroying transport UsbFfs
+10-26 21:30:43.653 I/adbd    ( 5468): UsbFfsConnection being destroyed
+10-26 21:30:43.707 I/adbd    ( 5468): opening control endpoint /dev/usb-ffs/adb/ep0
+10-26 21:30:43.711 I/        ( 5474): read descriptors
+10-26 21:30:43.711 I/        ( 5474): read strings
+10-26 21:30:43.711 I/init    (    1): processing action (sys.mtk.running.application=*) from (/vendor/etc/init/hw/init.common.rc:285)
+10-26 21:30:43.708 D/audio_hw_primary(  551): adev_set_parameters: foreground_app_change=com.gathin.tvhome
+10-26 21:30:43.708 D/audio_hw_primary(  551): _utils_set_sound_mode_effect(3251): SetParameter(foreground_app_change=com.gathin.tvhome)!!
+10-26 21:30:43.708 I/adbd    ( 5468): UsbFfsConnection constructed
+10-26 21:30:43.708 I/adbd    ( 5468): UsbFfs-monitor thread spawned
+10-26 21:30:43.781 I/MTK_MW  ( 1710): {DT} send msg to DT notification thread.
+10-26 21:30:43.781 D/MTK_MW  ( 1710): {DT} x_dt_get_brdcst_utc t_utc: 2.
+10-26 21:30:43.781 I/MTK_MW  ( 1710): {DT} DT_CHECK_RTC_VALUE_NOTIFACATION t_dt_cond == DT_NO_SYNC_SRC 
+10-26 21:30:43.783 D/HeartbeatUDTHandler( 3581): checkUDTStatus
+10-26 21:30:43.783 D/HeartbeatUDTHandler( 3581): mConnectionMap.size() = 0
+10-26 21:30:43.881 E/AIRPLAY_PROXY_AIDL(  498): event server receive data from eventFd fail! 11 Try again
+10-26 21:30:43.881 I/AIRPLAY_PROXY_AIDL(  498): general server receive data from genFd fail! 11 Try again
+10-26 21:30:44.014 I/[HAL_AUDIO_DumpDspInfo][14472][02207752]ADEC0 ESID(  450): 00, FF|ES=0000(0000),PCM=0000|Type=<00,0>|play=0:<1194>,State=0,0(0)|frmCnt:0000,0000(0000),00,00,00,00,00|tag:000,000|AvDly=140(ext offset:0),STC=0,PTS=0,cPTS=0,|Td=0
+10-26 21:30:44.014 I/        (  450): mute(0,0),acmode(5),ch_map(0x0)smp_rate(48000),bit_rate(0)
+10-26 21:30:44.014 I/        (  450): SND vol mch:0x800000,ch5:0x800000,ch6:0x800000,ch7:0x800000,ch8:0x800000
+10-26 21:30:44.148 I/AirPlayDaemon_Client( 2657): client notifySocket cmd:13
+10-26 21:30:44.148 I/AirPlayDaemon_Client( 2657): [SocketClient] successful sent 2050 bytes
+10-26 21:30:44.153 D/PackageManager(  724): Resolve content provider isEnabledAndMatches not match com.google.android.apps.tv.launcherx.coreservices.DeviceModeContentProvider
+10-26 21:30:44.153 D/ContentProviderHelper(  724): provider not running  but  resolve content provider failcom.google.android.apps.tv.launcherx.coreservices.DeviceModeContentProvider
+10-26 21:30:44.153 E/ActivityThread( 4028): Failed to find provider info for com.google.android.apps.tv.launcherx.coreservices.DeviceModeContentProvider
+10-26 21:30:44.153 I/GoogleTvHelper( 4028): system cursor is null, try user cursor
+10-26 21:30:44.153 D/PackageManager(  724): Resolve content provider isEnabledAndMatches not match com.google.android.apps.tv.launcherx.coreservices.UserModeContentProvider
+10-26 21:30:44.154 D/ContentProviderHelper(  724): provider not running  but  resolve content provider failcom.google.android.apps.tv.launcherx.coreservices.UserModeContentProvider
+10-26 21:30:44.154 E/ActivityThread( 4028): Failed to find provider info for com.google.android.apps.tv.launcherx.coreservices.UserModeContentProvider
+10-26 21:30:44.154 I/GoogleTvHelper( 4028): user cursor is null, return android tv
+10-26 21:30:44.154 D/MiTv-TvService-Parent( 1825): queryTvConfigByKey support_air_play
+10-26 21:30:44.154 D/ConfigParser( 1825): getInstance called
+10-26 21:30:44.154 D/ConfigParser( 1825): queryTvConfigByKey key: support_air_play value: YES
+10-26 21:30:44.154 I/TvInputMiddleware( 4028): [FeatureManagerImplMediatekAOW]check no tuner
+10-26 21:30:44.155 D/PackageManager(  724): Resolve content provider isEnabledAndMatches not match com.google.android.apps.tv.launcherx.coreservices.UserModeContentProvider
+10-26 21:30:44.155 D/ContentProviderHelper(  724): provider not running  but  resolve content provider failcom.google.android.apps.tv.launcherx.coreservices.UserModeContentProvider
+10-26 21:30:44.155 E/ActivityThread( 4028): Failed to find provider info for com.google.android.apps.tv.launcherx.coreservices.UserModeContentProvider
+10-26 21:30:44.156 D/MiTv-TvService-Parent( 1825): queryTvConfigByKey hw_no_tuner
+10-26 21:30:44.156 D/ConfigParser( 1825): getInstance called
+10-26 21:30:44.156 D/ConfigParser( 1825): queryTvConfigByKey key: hw_no_tuner value: null
+10-26 21:30:44.156 I/TvInputMiddleware( 4028): [FeatureManagerImplMediatekAOW]check no tuner
+10-26 21:30:44.156 D/PackageManager(  724): Resolve content provider isEnabledAndMatches not match com.google.android.apps.tv.launcherx.coreservices.UserModeContentProvider
+10-26 21:30:44.156 D/ContentProviderHelper(  724): provider not running  but  resolve content provider failcom.google.android.apps.tv.launcherx.coreservices.UserModeContentProvider
+10-26 21:30:44.157 E/ActivityThread( 4028): Failed to find provider info for com.google.android.apps.tv.launcherx.coreservices.UserModeContentProvider
+10-26 21:30:44.157 D/MiTv-TvService-Parent( 1825): queryTvConfigByKey hw_no_tuner
+10-26 21:30:44.157 D/ConfigParser( 1825): getInstance called
+10-26 21:30:44.157 D/ConfigParser( 1825): queryTvConfigByKey key: hw_no_tuner value: null
+10-26 21:30:44.157 I/TvInputMiddleware( 4028): [FeatureManagerImplMediatekAOW]check no tuner
+10-26 21:30:44.158 D/PackageManager(  724): Resolve content provider isEnabledAndMatches not match com.google.android.apps.tv.launcherx.coreservices.UserModeContentProvider
+10-26 21:30:44.158 D/ContentProviderHelper(  724): provider not running  but  resolve content provider failcom.google.android.apps.tv.launcherx.coreservices.UserModeContentProvider
+10-26 21:30:44.158 E/ActivityThread( 4028): Failed to find provider info for com.google.android.apps.tv.launcherx.coreservices.UserModeContentProvider
+10-26 21:30:44.159 D/MiTv-TvService-Parent( 1825): queryTvConfigByKey hw_no_tuner
+10-26 21:30:44.159 D/ConfigParser( 1825): getInstance called
+10-26 21:30:44.159 D/ConfigParser( 1825): queryTvConfigByKey key: hw_no_tuner value: null
+10-26 21:30:44.169 D/DatabaseHelper( 1261): get CFG_VIDEO_PIC_MODE: picModeByVrrAndFreesync = 
+10-26 21:30:44.178 D/SettingsProvider( 1710): query URI: content://com.mediatek.dtv.tvinput.dvbtuner.settings/general, projection: [Ljava.lang.String;@40c2603, selection: null, selectionArgs: null, sortOrder: null
+10-26 21:30:44.178 D/SettingsProvider( 1710): UriMatcher query:URI_GENERAL=1
+10-26 21:30:44.178 D/SettingsProvider( 1710): URI matched! table: general
+10-26 21:30:44.178 D/SettingsProvider( 1710): getGeneralValue key=subtitle
+10-26 21:30:44.178 D/SettingsManager( 1710): Data cache {subtitle,Int}=0
+10-26 21:30:44.178 D/SettingsProvider( 1710): getGeneralValue settingValue=Bundle[{subtitle=0}]
+10-26 21:30:44.178 D/SettingsProvider( 1710): dumpCursor: >>>>> Dumping cursor android.database.MatrixCursor@6134980
+10-26 21:30:44.178 D/SettingsProvider( 1710): 0 {
+10-26 21:30:44.178 D/SettingsProvider( 1710):    subtitle=0
+10-26 21:30:44.178 D/SettingsProvider( 1710): }
+10-26 21:30:44.178 D/SettingsProvider( 1710): <<<<<
+10-26 21:30:44.188 D/AirPlaySystemService_BootupService( 2606): updateHdmiCountreturn SourceId print: [com.mediatek.AirplayAPK/.AirPlayTvInputService] loadLabel :AirPlay
+10-26 21:30:44.188 D/AirPlaySystemService_BootupService( 2606): updateHdmiCountreturn SourceId print: [com.mediatek.dtv.tvinput.dvbtuner/.DvbTvInputService/HW0] loadLabel :Digital TV Input
+10-26 21:30:44.188 D/AirPlaySystemService_BootupService( 2606): updateHdmiCountreturn SourceId print: [com.mediatek.tis/.AnalogInputService/HW1] loadLabel :ATV
+10-26 21:30:44.188 D/AirPlaySystemService_BootupService( 2606): updateHdmiCountreturn SourceId print: [com.mediatek.tis/.CompositeInputService/HW5] loadLabel :AV
+10-26 21:30:44.188 D/AirPlaySystemService_BootupService( 2606): updateHdmiCountreturn SourceId print: [com.mediatek.tis/.HdmiInputService/HW2] loadLabel :HDMI 1
+10-26 21:30:44.188 D/AirPlaySystemService_BootupService( 2606): updateHdmiCountreturn SourceId print: [com.mediatek.tis/.HdmiInputService/HW3] loadLabel :HDMI 2
+10-26 21:30:44.188 D/AirPlaySystemService_BootupService( 2606): updateHdmiCountreturn SourceId print: [com.mediatek.tis/.HdmiInputService/HW4] loadLabel :HDMI 3
+10-26 21:30:44.200 D/PackageManager(  724): Resolve content provider isEnabledAndMatches not match com.google.android.tungsten.setupwraith
+10-26 21:30:44.200 D/ContentProviderHelper(  724): provider not running  but  resolve content provider failcom.google.android.tungsten.setupwraith
+10-26 21:30:44.200 E/ActivityThread( 2606): Failed to find provider info for com.google.android.tungsten.setupwraith
+10-26 21:30:44.202 D/ActivityManager(  724): registeredReceivers : 0
+10-26 21:30:44.202 I/AirPlayServiceApplication( 2606): mWakelock is null, no need release
+10-26 21:30:44.203 I/AirPlayDaemon_BootupReceiver( 2657): BroadcastReceiver gets action : Intent.airplay.setMacAddr AirPlayUtil.getInstance().isSourceFileCopied  true
+10-26 21:30:44.204 I/AirPlayDaemon_BootupReceiver( 2657): Intent.airplay.setMacAddr
+10-26 21:30:44.448 E/[wlan][1108]mtk_cfg_get_txpower( 1108): (REQ WARN) STA doesn't support this function
+10-26 21:30:44.710 W/adbd    ( 5468): timed out while waiting for FUNCTIONFS_BIND, trying again
+10-26 21:30:44.710 I/adbd    ( 5468): UsbFfs: connection terminated: monitor thread finished
+10-26 21:30:44.710 I/adbd    ( 5468): UsbFfs: already offline
+10-26 21:30:44.710 I/adbd    ( 5468): destroying transport UsbFfs
+10-26 21:30:44.710 I/adbd    ( 5468): UsbFfsConnection being destroyed
+10-26 21:30:44.716 D/audio_hw_primary(  551): adev_set_parameters: foreground_app_change=com.gathin.tvhome
+10-26 21:30:44.717 D/audio_hw_primary(  551): _utils_set_sound_mode_effect(3251): SetParameter(foreground_app_change=com.gathin.tvhome)!!
+10-26 21:30:44.720 I/init    (    1): processing action (sys.mtk.running.application=*) from (/vendor/etc/init/hw/init.common.rc:285)
+10-26 21:30:44.761 I/adbd    ( 5468): opening control endpoint /dev/usb-ffs/adb/ep0
+10-26 21:30:44.762 I/adbd    ( 5468): UsbFfsConnection constructed
+10-26 21:30:44.762 I/adbd    ( 5468): UsbFfs-monitor thread spawned
+10-26 21:30:44.765 I/        ( 5474): read descriptors
+10-26 21:30:44.765 I/        ( 5474): read strings
+10-26 21:30:45.109 I/[HAL_AUDIO_DumpDspInfo][14472][02208847]ADEC0 ESID(  450): 00, FF|ES=0000(0000),PCM=0000|Type=<00,0>|play=0:<1194>,State=0,0(0)|frmCnt:0000,0000(0000),00,00,00,00,00|tag:000,000|AvDly=140(ext offset:0),STC=0,PTS=0,cPTS=0,|Td=0
+10-26 21:30:45.109 I/        (  450): mute(0,0),acmode(5),ch_map(0x0)smp_rate(48000),bit_rate(0)
+10-26 21:30:45.109 I/        (  450): SND vol mch:0x800000,ch5:0x800000,ch6:0x800000,ch7:0x800000,ch8:0x800000
+10-26 21:30:45.620 D/BroadcastClockService( 1710): getUtcTime
+10-26 21:30:45.700 D/MtkLog  ( 1825): off
+10-26 21:30:45.719 D/MtkLog  ( 2606): off
+10-26 21:30:45.726 D/audio_hw_primary(  551): adev_set_parameters: foreground_app_change=com.gathin.tvhome
+10-26 21:30:45.726 D/audio_hw_primary(  551): _utils_set_sound_mode_effect(3251): SetParameter(foreground_app_change=com.gathin.tvhome)!!
+10-26 21:30:45.729 I/init    (    1): processing action (sys.mtk.running.application=*) from (/vendor/etc/init/hw/init.common.rc:285)
+10-26 21:30:45.763 W/adbd    ( 5468): timed out while waiting for FUNCTIONFS_BIND, trying again
+10-26 21:30:45.764 I/adbd    ( 5468): UsbFfs: connection terminated: monitor thread finished
+10-26 21:30:45.764 I/adbd    ( 5468): UsbFfs: already offline
+10-26 21:30:45.764 I/adbd    ( 5468): destroying transport UsbFfs
+10-26 21:30:45.764 I/adbd    ( 5468): UsbFfsConnection being destroyed
+10-26 21:30:45.781 I/MTK_MW  ( 1710): {DT} send msg to DT notification thread.
+10-26 21:30:45.781 D/MTK_MW  ( 1710): {DT} x_dt_get_brdcst_utc t_utc: 2.
+10-26 21:30:45.781 I/MTK_MW  ( 1710): {DT} DT_CHECK_RTC_VALUE_NOTIFACATION t_dt_cond == DT_NO_SYNC_SRC 
+10-26 21:30:45.806 I/adbd    ( 5468): opening control endpoint /dev/usb-ffs/adb/ep0
+10-26 21:30:45.806 I/adbd    ( 5468): UsbFfsConnection constructed
+10-26 21:30:45.807 I/adbd    ( 5468): UsbFfs-monitor thread spawned
+10-26 21:30:45.809 I/        ( 5474): read descriptors
+10-26 21:30:45.809 I/        ( 5474): read strings
+10-26 21:30:46.194 I/[HAL_AUDIO_DumpDspInfo][14472][02209932]ADEC0 ESID(  450): 00, FF|ES=0000(0000),PCM=0000|Type=<00,0>|play=0:<1194>,State=0,0(0)|frmCnt:0000,0000(0000),00,00,00,00,00|tag:000,000|AvDly=140(ext offset:0),STC=0,PTS=0,cPTS=0,|Td=0
+10-26 21:30:46.194 I/        (  450): mute(0,0),acmode(5),ch_map(0x0)smp_rate(48000),bit_rate(0)
+10-26 21:30:46.194 I/        (  450): SND vol mch:0x800000,ch5:0x800000,ch6:0x800000,ch7:0x800000,ch8:0x800000
+10-26 21:30:46.282 I/adbd    ( 5468): host-34: write thread spawning
+10-26 21:30:46.282 I/adbd    ( 5468): host-34: read thread spawning
+10-26 21:30:46.285 I/adbd    ( 5468): host-34: already offline
+10-26 21:30:46.285 I/adbd    ( 5468): Calling send_auth_request...
+10-26 21:30:46.369 I/adbd    ( 5468): adbd_auth: loading keys from /data/misc/adb/adb_keys
+10-26 21:30:46.369 I/adbd    ( 5468): adb client authorized
+10-26 21:30:46.432 E/BpfService(  724): [MiuiBpfService][HandleRawBpfEvent] Before threadNum--: pid: 5468, ppid: 1, uid: 0, threadNum: 15, oldThreadNum: 12
+10-26 21:30:46.432 E/BpfService(  724): [MiuiBpfService][HandleRawBpfEvent] Before threadNum--: pid: 5468, ppid: 1, uid: 0, threadNum: 14, oldThreadNum: 12
+10-26 21:30:46.432 E/BpfService(  724): [MiuiBpfService][HandleRawBpfEvent] Before threadNum--: pid: 5468, ppid: 1, uid: 0, threadNum: 13, oldThreadNum: 12
+10-26 21:30:46.432 E/BpfService(  724): [MiuiBpfService][HandleRawBpfEvent] Before threadNum--: pid: 5468, ppid: 1, uid: 0, threadNum: 12, oldThreadNum: 12
+10-26 21:30:46.432 E/BpfService(  724): [MiuiBpfService][HandleRawBpfEvent] Before threadNum++: pid: 5468, ppid: 1, uid: 0, threadNum: 11, oldThreadNum: 12
+10-26 21:30:46.432 E/BpfService(  724): [MiuiBpfService][HandleRawBpfEvent] Before threadNum--: pid: 5468, ppid: 1, uid: 0, threadNum: 12, oldThreadNum: 12
+10-26 21:30:46.432 E/BpfService(  724): [MiuiBpfService][HandleRawBpfEvent] Before threadNum++: pid: 5468, ppid: 1, uid: 0, threadNum: 11, oldThreadNum: 12
+10-26 21:30:46.432 E/BpfService(  724): [MiuiBpfService][HandleRawBpfEvent] Before threadNum++: pid: 2606, ppid: 384, uid: 10094, threadNum: 31, oldThreadNum: 27
+10-26 21:30:46.432 E/BpfService(  724): [MiuiBpfService][HandleRawBpfEvent] Before threadNum--: pid: 2606, ppid: 384, uid: 10094, threadNum: 32, oldThreadNum: 27
+10-26 21:30:46.432 E/BpfService(  724): [MiuiBpfService][HandleRawBpfEvent] Before threadNum--: pid: 5468, ppid: 1, uid: 0, threadNum: 12, oldThreadNum: 12
+10-26 21:30:46.432 E/BpfService(  724): [MiuiBpfService][HandleRawBpfEvent] Before threadNum++: pid: 5468, ppid: 1, uid: 0, threadNum: 11, oldThreadNum: 12
+10-26 21:30:46.432 E/BpfService(  724): [MiuiBpfService][HandleRawBpfEvent] Before threadNum--: pid: 5468, ppid: 1, uid: 0, threadNum: 12, oldThreadNum: 12
+10-26 21:30:46.432 E/BpfService(  724): [MiuiBpfService][HandleRawBpfEvent] Before threadNum++: pid: 5468, ppid: 1, uid: 0, threadNum: 11, oldThreadNum: 12
+10-26 21:30:46.432 E/BpfService(  724): [MiuiBpfService][HandleRawBpfEvent] Before threadNum++: pid: 5468, ppid: 1, uid: 0, threadNum: 12, oldThreadNum: 12
+10-26 21:30:46.432 E/BpfService(  724): [MiuiBpfService][HandleRawBpfEvent] Before threadNum++: pid: 5468, ppid: 1, uid: 0, threadNum: 13, oldThreadNum: 12
+10-26 21:30:46.432 E/BpfService(  724): [MiuiBpfService][HandleRawBpfEvent] Before threadNum++: pid: 5468, ppid: 1, uid: 0, threadNum: 14, oldThreadNum: 12
